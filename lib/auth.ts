@@ -28,14 +28,20 @@ export const authOptions = {
   ],
   session: { strategy: "jwt" as const },
   callbacks: {
-    async jwt({ token, user }: any) {
-      if (user) token.role = user.role;
-      return token;
-    },
-    async session({ session, token }: any) {
-      if (session.user) (session.user as any).role = token.role;
-      return session;
-    },
+  async jwt({ token, user }: any) {
+    if (user) {
+      token.role = user.role;
+      token.id = user.id;
+    }
+    return token;
   },
+  async session({ session, token }: any) {
+    if (session.user) {
+      (session.user as any).role = token.role;
+      (session.user as any).id = token.id;
+    }
+    return session;
+  },
+},
   pages: { signIn: "/login" },
 };

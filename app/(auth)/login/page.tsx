@@ -1,9 +1,60 @@
-export default function Home() {
+"use client";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (res?.error) {
+      setError("Invalid email or password");
+    } else {
+      router.push("/student");
+    }
+  }
+
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Smart Campus Platform</h1>
-      <p>Landing page — coming in Phase 1</p>
-      <a href="/signup">Sign up</a> | <a href="/login">Log in</a>
+    <main style={{ padding: "2rem", maxWidth: 400 }}>
+      <h1>Log In</h1>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Email</label><br />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </div>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Password</label><br />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </div>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <button type="submit" style={{ padding: "0.5rem 1rem" }}>
+          Log In
+        </button>
+      </form>
     </main>
   );
 }
