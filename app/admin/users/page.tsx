@@ -32,11 +32,16 @@ export default function AdminUsersPage() {
     loadUsers();
   }
 
-  async function deleteUser(id: string, name: string) {
-    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
-    await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
-    loadUsers();
+ async function deleteUser(id: string, name: string) {
+  if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+  const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.error || "Failed to delete user.");
+    return;
   }
+  loadUsers();
+}
 
   if (loading) return <p>Loading...</p>;
 
