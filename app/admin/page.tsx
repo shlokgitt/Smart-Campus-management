@@ -10,37 +10,55 @@ export default function AdminDashboard() {
       .then(setStats);
   }, []);
 
-  if (!stats) return <p>Loading...</p>;
-
   return (
-    <div>
-      <h1>Admin Dashboard</h1>
-      <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
-        <div style={{ border: "1px solid #444", padding: "1rem", minWidth: 150 }}>
-          <h3>Students</h3>
-          <p style={{ fontSize: "1.5rem" }}>{stats.totalStudents}</p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500">Platform-wide overview across every role.</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Students</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats === null ? "..." : stats.totalStudents}
+          </p>
         </div>
-        <div style={{ border: "1px solid #444", padding: "1rem", minWidth: 150 }}>
-          <h3>Faculty</h3>
-          <p style={{ fontSize: "1.5rem" }}>{stats.totalFaculty}</p>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Faculty</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats === null ? "..." : stats.totalFaculty}
+          </p>
         </div>
-        <div style={{ border: "1px solid #444", padding: "1rem", minWidth: 150 }}>
-          <h3>Admins</h3>
-          <p style={{ fontSize: "1.5rem" }}>{stats.totalAdmins}</p>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Admins</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats === null ? "..." : stats.totalAdmins}
+          </p>
         </div>
-        <div style={{ border: "1px solid #444", padding: "1rem", minWidth: 150 }}>
-          <h3>Assignments</h3>
-          <p style={{ fontSize: "1.5rem" }}>{stats.totalAssignments}</p>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Assignments</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats === null ? "..." : stats.totalAssignments}
+          </p>
         </div>
-        <div style={{ border: "1px solid #444", padding: "1rem", minWidth: 150 }}>
-          <h3>Attendance Records</h3>
-          <p style={{ fontSize: "1.5rem" }}>{stats.totalAttendanceRecords}</p>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Attendance Records</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {stats === null ? "..." : stats.totalAttendanceRecords}
+          </p>
         </div>
       </div>
 
-      <div style={{ marginTop: "2rem" }}>
-        <h2>Quick Links</h2>
-        <a href="/admin/users">Manage Users</a>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-base font-semibold text-slate-900">Quick Links</h2>
+        <a href="/admin/users" className="inline-block rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+          Manage Users
+        </a>
       </div>
     </div>
   );
