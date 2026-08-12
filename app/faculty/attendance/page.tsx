@@ -7,7 +7,8 @@ export default function FacultyAttendancePage() {
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("present");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<"success" | "error" | "">("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetch("/api/faculty/students")
@@ -17,50 +18,124 @@ export default function FacultyAttendancePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setMessage("Saving...");
+    setSubmitting(true);
+    setMessage("");
     const res = await fetch("/api/faculty/attendance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ studentId, subject, date, status }),
     });
-    if (res.ok) {
-      setMessage("Attendance marked!");
-    } else {
-      setMessage("Failed to mark attendance.");
-    }
+    setMessage(res.ok ? "success" : "error");
+    setSubmitting(false);
   }
 
   return (
-    <div>
-      <h1>Mark Attendance</h1>
-      <form onSubmit={handleSubmit} style={{ maxWidth: 400 }}>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>Student</label><br />
-          <select value={studentId} onChange={(e) => setStudentId(e.target.value)} required style={{ width: "100%", padding: "0.5rem" }}>
-            <option value="">Select a student</option>
-            {students.map((s: any) => (
-              <option key={s._id} value={s._id}>{s.name} ({s.email})</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>Subject</label><br />
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} required style={{ width: "100%", padding: "0.5rem" }} />
-        </div>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>Date</label><br />
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required style={{ width: "100%", padding: "0.5rem" }} />
-        </div>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>Status</label><br />
-          <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "100%", padding: "0.5rem" }}>
-            <option value="present">Present</option>
-            <option value="absent">Absent</option>
-          </select>
-        </div>
-        <button type="submit" style={{ padding: "0.5rem 1rem" }}>Mark Attendance</button>
-      </form>
-      {message && <p>{message}</p>}
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Mark Attendance</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Record attendance for a student by subject and date.
+        </p>
+      </div>
+
+      <div className="max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-600">
+              Student
+            </label>
+            <select
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              required
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">Select a student</option>
+              {students.map((s: any) => (
+                <option key={s._id} value={s._id}>
+                  {s.name} ({s.email})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                Subject
+              </label>
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                placeholder="e.g. Data Structures"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                Date
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-600">
+              Status
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setStatus("present")}
+                className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                  status === "present"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                }`}
+              >
+                Present
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus("absent")}
+                className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                  status === "absent"
+                    ? "border-red-500 bg-red-50 text-red-700"
+                    : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                }`}
+              >
+                Absent
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? "Saving..." : "Mark Attendance"}
+          </button>
+
+          {message === "success" && (
+            <p className="text-sm font-medium text-emerald-600">
+              Attendance marked successfully.
+            </p>
+          )}
+          {message === "error" && (
+            <p className="text-sm font-medium text-red-600">
+              Failed to mark attendance. Try again.
+            </p>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

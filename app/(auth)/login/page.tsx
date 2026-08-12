@@ -22,7 +22,13 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Invalid email or password");
     } else {
-      router.push("/student");
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+      const role = session?.user?.role;
+
+      if (role === "faculty") router.push("/faculty");
+      else if (role === "admin") router.push("/admin");
+      else router.push("/student");
     }
   }
 
