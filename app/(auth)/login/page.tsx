@@ -10,8 +10,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const router = useRouter();
+async function handleGoogleLogin() {
+  setGoogleLoading(true);
+  setError("");
+
+  await signIn("google", {
+    callbackUrl: "/student",
+  });
+}
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,8 +63,10 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#eeeae2] text-[#181816]">
       <div className="grid min-h-screen lg:grid-cols-2">
+
         {/* Left panel */}
         <section className="hidden bg-[#171715] lg:flex lg:min-h-screen lg:flex-col">
+
           {/* Brand */}
           <div className="p-12 xl:p-16">
             <a href="/" className="inline-flex items-center gap-3">
@@ -108,6 +119,7 @@ export default function LoginPage() {
         {/* Right panel */}
         <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
           <div className="w-full max-w-md">
+
             {/* Mobile brand */}
             <div className="mb-10 lg:hidden">
               <a href="/" className="inline-flex items-center gap-3">
@@ -144,7 +156,9 @@ export default function LoginPage() {
 
             {/* Form */}
             <div className="border border-[#d2cabc] bg-[#f8f5ee] p-6 shadow-[0_12px_35px_rgba(30,26,20,0.07)] sm:p-8">
+
               <form onSubmit={handleSubmit} className="space-y-5">
+
                 {/* Email */}
                 <div>
                   <label
@@ -208,15 +222,69 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* Button */}
+                {/* Sign in */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   className="w-full bg-[#181816] px-5 py-3 text-sm font-semibold text-[#f5f0e6] transition hover:bg-[#292824] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </button>
               </form>
+
+              {/* Divider */}
+              <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-1 bg-[#d2cabc]" />
+
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[#a29a8c]">
+                  Or
+                </span>
+
+                <div className="h-px flex-1 bg-[#d2cabc]" />
+              </div>
+
+              {/* Google */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading || googleLoading}
+                className="flex w-full items-center justify-center gap-3 border border-[#cbc3b4] bg-[#fffdf8] px-5 py-3 text-sm font-semibold text-[#302e29] transition hover:bg-[#f1ede4] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {googleLoading ? (
+                  "Connecting to Google..."
+                ) : (
+                  <>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill="#4285F4"
+                        d="M21.35 12.23c0-.79-.07-1.55-.2-2.28H12v4.31h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.42Z"
+                      />
+
+                      <path
+                        fill="#34A853"
+                        d="M12 21.99c2.63 0 4.84-.87 6.45-2.35l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.28v2.53A9.75 9.75 0 0 0 12 21.99Z"
+                      />
+
+                      <path
+                        fill="#FBBC05"
+                        d="M6.53 14.08A5.86 5.86 0 0 1 6.22 12c0-.72.12-1.42.31-2.08V7.39H3.28A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.03 4.61l3.25-2.53Z"
+                      />
+
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.88c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.83 2.98 14.63 2 12 2a9.75 9.75 0 0 0-8.72 5.39l3.25 2.53C7.3 7.6 9.46 5.88 12 5.88Z"
+                      />
+                    </svg>
+
+                    Continue with Google
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Back */}
