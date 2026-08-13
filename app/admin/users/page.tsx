@@ -3,10 +3,17 @@
 import { useEffect, useState } from "react";
 
 const roleColors: Record<string, string> = {
-  admin: "bg-indigo-50 text-indigo-700",
-  faculty: "bg-emerald-50 text-emerald-700",
-  coordinator: "bg-amber-50 text-amber-700",
-  student: "bg-slate-100 text-slate-600",
+  admin: "bg-indigo-50 text-indigo-700 border-indigo-100",
+  faculty: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  coordinator: "bg-amber-50 text-amber-700 border-amber-100",
+  student: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+const roleIcons: Record<string, string> = {
+  admin: "A",
+  faculty: "F",
+  coordinator: "C",
+  student: "S",
 };
 
 const roles = ["student", "faculty", "coordinator", "admin"];
@@ -22,18 +29,23 @@ export default function AdminUsersPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+
   function loadUsers() {
     setLoading(true);
+    setError("");
 
     fetch("/api/admin/users")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to load users");
         }
+
         return res.json();
       })
       .then((data) => {
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
@@ -150,24 +162,66 @@ export default function AdminUsersPage() {
     }
   }
 
+  const filteredUsers = users.filter((user) => {
+    const searchValue = search.toLowerCase().trim();
+
+    const matchesSearch =
+      !searchValue ||
+      user.name?.toLowerCase().includes(searchValue) ||
+      user.email?.toLowerCase().includes(searchValue);
+
+    const matchesRole =
+      roleFilter === "all" || user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+
+  const roleCounts = {
+    all: users.length,
+    student: users.filter((user) => user.role === "student").length,
+    faculty: users.filter((user) => user.role === "faculty").length,
+    coordinator: users.filter(
+      (user) => user.role === "coordinator"
+    ).length,
+    admin: users.filter((user) => user.role === "admin").length,
+  };
+
   return (
     <>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Users
-          </h1>
+      <div className="space-y-8">
 
-          <p className="mt-1 text-sm text-slate-500">
-            Manage roles and access across the platform.
-          </p>
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
+              Administration
+            </p>
+
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Users
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Manage accounts, roles, and access across the Smart Campus
+              platform.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Total users
+            </p>
+
+            <p className="mt-1 text-xl font-bold text-slate-900">
+              {loading ? "..." : users.length}
+            </p>
+          </div>
         </div>
 
         {/* Success Message */}
         {message && (
           <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100">
               ✓
             </span>
 
@@ -178,7 +232,7 @@ export default function AdminUsersPage() {
         {/* Error Message */}
         {error && (
           <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100">
               !
             </span>
 
@@ -186,100 +240,265 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {/* Users Table */}
+        {/* Role overview */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            {
+              key: "all",
+              label: "All users",
+            },
+            {
+              key: "student",
+              label: "Students",
+            },
+            {
+              key: "faculty",
+              label: "Faculty",
+            },
+            {
+              key: "coordinator",
+              label: "Coordinators",
+            },
+            {
+              key: "admin",
+              label: "Admins",
+            },
+          ].map((item) => {
+            const active = roleFilter === item.key;
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setRoleFilter(item.key)}
+                className={`rounded-xl border px-4 py-4 text-left transition ${
+                  active
+                    ? "border-indigo-200 bg-indigo-50"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <p
+                  className={`text-[10px] font-semibold uppercase tracking-wider ${
+                    active
+                      ? "text-indigo-600"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {item.label}
+                </p>
+
+                <p className="mt-1 text-xl font-bold text-slate-900">
+                  {loading
+                    ? "..."
+                    : roleCounts[item.key as keyof typeof roleCounts]}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Users container */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+          {/* Table toolbar */}
+          <div className="border-b border-slate-100 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">
+                  Campus accounts
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {loading
+                    ? "Loading accounts..."
+                    : `${filteredUsers.length} account${
+                        filteredUsers.length !== 1 ? "s" : ""
+                      } shown`}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+
+                {/* Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search name or email..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-64"
+                  />
+                </div>
+
+                {/* Role filter */}
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="all">All roles</option>
+                  <option value="student">Students</option>
+                  <option value="faculty">Faculty</option>
+                  <option value="coordinator">
+                    Coordinators
+                  </option>
+                  <option value="admin">Admins</option>
+                </select>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
           {loading ? (
-            <div className="space-y-3 p-6">
-              {[1, 2, 3].map((i) => (
+            <div className="space-y-4 p-6">
+              {[1, 2, 3, 4].map((item) => (
                 <div
-                  key={i}
-                  className="h-12 animate-pulse rounded-xl bg-slate-100"
+                  key={item}
+                  className="h-16 animate-pulse rounded-xl bg-slate-100"
                 />
               ))}
             </div>
-          ) : users.length === 0 ? (
-            <div className="p-10 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                👥
+          ) : filteredUsers.length === 0 ? (
+            <div className="flex min-h-[350px] flex-col items-center justify-center px-6 py-12 text-center">
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400">
+                ♙
               </div>
 
-              <p className="text-sm font-medium text-slate-700">
-                No users found.
+              <h3 className="mt-4 text-base font-semibold text-slate-800">
+                No users found
+              </h3>
+
+              <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">
+                Try changing your search or role filter.
               </p>
 
-              <p className="mt-1 text-xs text-slate-400">
-                There are currently no users in the system.
-              </p>
+              {(search || roleFilter !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setRoleFilter("all");
+                  }}
+                  className="mt-4 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left text-sm">
-                <thead className="border-b border-slate-100 bg-slate-50">
+              <table className="w-full min-w-[850px] text-left text-sm">
+
+                <thead className="border-b border-slate-100 bg-slate-50/80">
                   <tr>
-                    <th className="px-6 py-3 font-semibold text-slate-600">
-                      Name
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      User
                     </th>
 
-                    <th className="px-6 py-3 font-semibold text-slate-600">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                       Email
                     </th>
 
-                    <th className="px-6 py-3 font-semibold text-slate-600">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                       Role
                     </th>
 
-                    <th className="px-6 py-3 font-semibold text-slate-600">
+                    <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                       Actions
                     </th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {users.map((u: any) => (
+
+                  {filteredUsers.map((user: any) => (
                     <tr
-                      key={u._id}
-                      className="transition hover:bg-slate-50"
+                      key={user._id}
+                      className="transition hover:bg-slate-50/70"
                     >
-                      <td className="px-6 py-4 font-medium text-slate-900">
-                        {u.name}
+
+                      {/* User */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                            {user.name
+                              ? user.name
+                                  .split(" ")
+                                  .map((part: string) => part[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()
+                              : "U"}
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-slate-900">
+                              {user.name}
+                            </p>
+
+                            <p className="mt-0.5 text-xs text-slate-400">
+                              Campus account
+                            </p>
+                          </div>
+
+                        </div>
                       </td>
 
+                      {/* Email */}
                       <td className="px-6 py-4 text-slate-600">
-                        {u.email}
+                        {user.email}
                       </td>
 
+                      {/* Role */}
                       <td className="px-6 py-4">
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            roleColors[u.role] ||
-                            "bg-slate-100 text-slate-600"
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                            roleColors[user.role] ||
+                            "border-slate-200 bg-slate-100 text-slate-600"
                           }`}
                         >
-                          {u.role}
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/70 text-[9px] font-bold">
+                            {roleIcons[user.role] || "U"}
+                          </span>
+
+                          <span className="capitalize">
+                            {user.role}
+                          </span>
                         </span>
                       </td>
 
+                      {/* Actions */}
                       <td className="px-6 py-4">
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
+
                           <button
-                            onClick={() => openRoleModal(u)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                            type="button"
+                            onClick={() => openRoleModal(user)}
+                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
                           >
                             Change Role
                           </button>
 
                           <button
+                            type="button"
                             onClick={() =>
-                              deleteUser(u._id, u.name)
+                              deleteUser(user._id, user.name)
                             }
-                            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
                           >
                             Delete
                           </button>
+
                         </div>
                       </td>
+
                     </tr>
                   ))}
+
                 </tbody>
               </table>
             </div>
@@ -290,49 +509,79 @@ export default function AdminUsersPage() {
       {/* Change Role Modal */}
       {selectedUser && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
               closeRoleModal();
             }
           }}
         >
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Change User Role
-                </h2>
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Update access level for this user.
-                </p>
+            {/* Modal header */}
+            <div className="border-b border-slate-100 px-6 py-5">
+              <div className="flex items-start justify-between">
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                    Access control
+                  </p>
+
+                  <h2 className="mt-1 text-lg font-bold text-slate-900">
+                    Change User Role
+                  </h2>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Update access level for this account.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeRoleModal}
+                  disabled={savingRole}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed"
+                >
+                  ×
+                </button>
+
+              </div>
+            </div>
+
+            {/* User */}
+            <div className="px-6 pt-5">
+
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                  {selectedUser.name
+                    ? selectedUser.name
+                        .split(" ")
+                        .map((part: string) => part[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "U"}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-900">
+                    {selectedUser.name}
+                  </p>
+
+                  <p className="truncate text-sm text-slate-500">
+                    {selectedUser.email}
+                  </p>
+                </div>
+
               </div>
 
-              <button
-                onClick={closeRoleModal}
-                disabled={savingRole}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed"
-              >
-                ×
-              </button>
             </div>
 
-            {/* User Information */}
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="font-semibold text-slate-900">
-                {selectedUser.name}
-              </p>
+            {/* Role */}
+            <div className="px-6 pt-5">
 
-              <p className="mt-1 text-sm text-slate-500">
-                {selectedUser.email}
-              </p>
-            </div>
-
-            {/* Role Select */}
-            <div className="mt-5">
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Select Role
               </label>
 
@@ -348,21 +597,24 @@ export default function AdminUsersPage() {
                   </option>
                 ))}
               </select>
+
             </div>
 
             {/* Warning */}
             {selectedRole !== selectedUser.role && (
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="mx-6 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                 <p className="text-xs leading-5 text-amber-700">
-                  Changing this role may change what the user can
-                  access across the Smart Campus platform.
+                  Changing this role may change what this user can access
+                  across the Smart Campus platform.
                 </p>
               </div>
             )}
 
-            {/* Modal Actions */}
-            <div className="mt-6 flex justify-end gap-3">
+            {/* Actions */}
+            <div className="flex justify-end gap-3 border-t border-slate-100 px-6 py-5">
+
               <button
+                type="button"
                 onClick={closeRoleModal}
                 disabled={savingRole}
                 className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -371,6 +623,7 @@ export default function AdminUsersPage() {
               </button>
 
               <button
+                type="button"
                 onClick={saveRole}
                 disabled={
                   savingRole ||
@@ -380,7 +633,9 @@ export default function AdminUsersPage() {
               >
                 {savingRole ? "Saving..." : "Save Changes"}
               </button>
+
             </div>
+
           </div>
         </div>
       )}
