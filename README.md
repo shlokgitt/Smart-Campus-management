@@ -1,161 +1,376 @@
-# Smart Campus Management Platform
+Smart Campus Management Platform
 
-**DevFusion 4.O — The Developers Hackathon**
-**Problem Statement 1: Smart Campus Management Platform**
+DevFusion 4.O — The Developers Hackathon Problem Statement 1: Smart Campus Management Platform
 
-A centralized full-stack web platform where students, faculty, and admins
-manage attendance, assignments, notifications, and user roles — replacing
-scattered WhatsApp groups and disconnected systems with one place.
+A centralized full-stack campus management platform where students, faculty, and administrators can manage academic activities, attendance, assignments, notifications, profiles, and user roles from one connected system.
 
----
+🔗 Live Deployment
 
-## 🔗 Live Deployment
+Production: https://smart-campus-management-ashen.vercel.app
 
-[https://smart-campus-management-ashen.vercel.app](https://smart-campus-management-ashen.vercel.app)
+The application is deployed on Vercel and the production build is currently working.
 
-> **Note:** Login is fully working in local development. Production login
-> on the deployed link is still being finalized — see **Known Bugs &
-> Limitations** below.
+✨ What Has Been Built
 
----
+🔐 Authentication & Authorization
 
-## 🧰 Tech Stack
+Email/password signup and login
 
-- **Frontend:** Next.js 16 (App Router), TypeScript, Tailwind CSS
-- **Backend:** Next.js API Routes
-- **Database:** MongoDB Atlas (Mongoose ODM)
-- **Authentication:** NextAuth.js — Email/Password (Credentials provider) +
-  Google OAuth (configured, pending final setup)
-- **Deployment:** Vercel
+Password hashing with bcryptjs
 
----
+JWT-based NextAuth sessions
 
-## ✅ Features Built
+Google OAuth login
 
-### Authentication
-- Email + password signup/login
-- JWT-based sessions
-- Role-based route protection via middleware (student / faculty / admin)
+Automatic Google-user creation in MongoDB
 
-### Student
-- Dashboard with attendance %, pending assignments, and unread notification
-  counts
-- View attendance history and overall percentage
-- View and submit assignments (file URL or GitHub link)
-- View and mark notifications as read
-- View and edit profile (name, phone, department, bio, LinkedIn, GitHub)
+Role-aware sessions and route protection
 
-### Faculty
-- Dashboard access
-- Create assignments (title, description, subject, deadline)
-- Mark student attendance (present/absent, by subject and date)
+Student, Faculty, and Admin access control
 
-### Admin
-- Dashboard with platform-wide stats (total students, faculty, admins,
-  assignments, attendance records)
-- User management: view all users, change roles, delete users (with a
-  safety check preventing self-deletion)
+Logout and Back to Home navigation
 
-### Landing Page
-- Hero section, feature highlights per role, stats, and FAQ
+Unauthorized-access protection
 
----
+🎓 Student Portal
 
-## 🚀 Running Locally
+Dashboard
 
-**Prerequisites:** Node.js 18+, a MongoDB Atlas account (free tier works)
+Attendance overview/history
 
-```bash
-git clone <this-repo-url>
-cd smart-campus
+Assignment listing and submission
+
+File URL or GitHub-link submissions
+
+Late-submission detection
+
+Database-backed notifications
+
+Mark notifications as read
+
+Profile viewing/editing
+
+Responsive sidebar and mobile navigation
+
+Logout and Back to Home
+
+👨‍🏫 Faculty Portal
+
+Faculty dashboard
+
+Assignment creation and management
+
+Attendance management
+
+Student listing/access
+
+Responsive dashboard UI
+
+Quick actions for assignments and attendance
+
+Logout and Back to Home
+
+🛡️ Admin Portal
+
+Platform-wide dashboard statistics
+
+Student, faculty and admin counts
+
+Assignment and attendance-record counts
+
+User management
+
+View all users
+
+Change user roles
+
+Delete users
+
+Protection against changing the logged-in admin's own role
+
+Admin notifications API
+
+Responsive navigation
+
+Logout and Back to Home
+
+🔔 Notifications
+
+User-specific notifications
+
+Title and message
+
+Types: assignment, attendance, event, placement, system
+
+Read/unread state
+
+Mark-as-read API
+
+Newest-first ordering
+
+🎨 UI/UX
+
+Modern Smart Campus visual identity
+
+Responsive layouts
+
+Role-specific sidebars
+
+Mobile navigation
+
+Dashboard cards and empty states
+
+Consistent spacing, typography and navigation
+
+Styled landing page
+
+Student, Faculty and Admin dashboard interfaces
+
+🧰 Tech Stack
+
+Frontend: Next.js 16, React, TypeScript, Tailwind CSS
+
+Backend: Next.js API Routes
+
+Database: MongoDB Atlas with Mongoose
+
+Authentication: NextAuth.js, Credentials Provider, Google OAuth, JWT
+
+Security: bcryptjs, role-based middleware
+
+Deployment: GitHub + Vercel
+
+📡 API Modules
+
+/api
+├── admin
+│   ├── dashboard
+│   ├── notifications
+│   └── users
+│       ├── [id]
+│       └── [id]/role
+├── auth
+│   ├── signup
+│   └── [...nextauth]
+├── faculty
+│   ├── assignments
+│   ├── attendance
+│   └── students
+└── student
+    ├── assignments
+    │   └── [id]/submit
+    ├── attendance
+    ├── dashboard
+    ├── notifications
+    │   └── [id]/read
+    └── profile
+
+🗂️ Project Structure
+
+smart-campus/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   └── signup/
+│   ├── admin/
+│   ├── faculty/
+│   ├── student/
+│   ├── unauthorized/
+│   ├── api/
+│   └── layout.tsx
+├── components/
+│   └── shared/
+├── lib/
+│   ├── models/
+│   ├── auth.ts
+│   └── db.ts
+├── public/
+├── types/
+├── middleware.ts
+├── next.config.ts
+└── README.md
+
+🚀 Running Locally
+
+Prerequisites
+
+Node.js 18+
+
+MongoDB Atlas
+
+Google Cloud OAuth credentials for Google login
+
+Install
+
+git clone https://github.com/shlokgitt/Smart-Campus-management.git
+cd Smart-Campus-management
 npm install
-```
 
-Create a `.env.local` file in the project root with the following (see
-`.env.example` for the template):
+Create .env.local:
 
-```
 MONGODB_URI=<your MongoDB Atlas connection string>
-NEXTAUTH_SECRET=<any random string — generate with the command below>
+NEXTAUTH_SECRET=<your NextAuth secret>
 NEXTAUTH_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=<optional, for Google login>
-GOOGLE_CLIENT_SECRET=<optional, for Google login>
-```
+GOOGLE_CLIENT_ID=<your Google OAuth client ID>
+GOOGLE_CLIENT_SECRET=<your Google OAuth client secret>
 
-Generate a `NEXTAUTH_SECRET`:
-```bash
+Generate a secret:
+
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
 
-**MongoDB Atlas setup:**
-1. Create a free M0 cluster
-2. Under Database Access, create a user with read/write permissions
-3. Under Network Access, allow access from anywhere (`0.0.0.0/0`)
-4. Copy the connection string into `MONGODB_URI` above
+Start the development server:
 
-Run the dev server:
-```bash
 npm run dev
-```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000.
 
----
+Never commit .env.local or expose production secrets.
 
-## 🔑 Test Accounts
+🧪 Production Build
 
-| Role    | Email                | Password    |
-|---------|-----------------------|-------------|
-| Student | test@example.com      | test1234    |
-| Faculty | faculty@example.com   | faculty1234 |
-| Admin   | admin@example.com     | admin1234   |
+Verify the project before deployment:
 
----
+npm run build
 
-## 📁 Project Structure
+The current project has a successful production build after fixing the Next.js 16 dynamic-route parameter typing issue.
 
-```
-/app
-  /(auth)/login, /signup       — auth pages
-  /api                         — all backend API routes
-  /student, /faculty, /admin   — role-specific dashboards and pages
-/lib
-  /models                      — Mongoose schemas
-  auth.ts, db.ts                — NextAuth config, DB connection
-/components                    — shared and role-specific UI components
-/middleware.ts                 — role-based route protection
-```
+Dynamic routes use:
 
----
+{ params }: { params: Promise<{ id: string }> }
 
-## 🐛 Known Bugs & Limitations
+and:
 
-- **Production login on Vercel is not yet fully verified** — local
-  development is fully functional and tested end-to-end; the deployed
-  environment's auth flow is still being debugged.
-- **Google OAuth** is wired into the codebase but Google Cloud credentials
-  have not yet been added to the environment — currently email/password
-  login only.
-- **Faculty submission review** (grading student assignment submissions) is
-  not yet built — faculty can create assignments and take attendance;
-  students can submit; the review/grading step is pending.
-- **UI is functional but minimally styled** on most pages — the landing
-  page has full styling; internal dashboard pages use plain layout and
-  will receive a full visual pass.
-- No file upload for assignments yet — students submit a file URL or
-  GitHub link rather than uploading a file directly.
-- Coordinator role and Event/Placement modules are not implemented.
+const { id } = await params;
 
----
+🌐 Deployment
 
-## 👥 Team
+The project is deployed through Vercel from GitHub.
 
-- **Shlok** — Full-stack development (auth, database, all three role
-  dashboards, deployment)
+Production environment variables:
 
----
+MONGODB_URI
+NEXTAUTH_SECRET
+NEXTAUTH_URL
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
 
-## 📄 License
+For production, NEXTAUTH_URL must use the deployed Vercel domain.
 
-Built for DevFusion 4.O — The Developers Hackathon. Not licensed for
-production use.
+Google OAuth production callback:
+
+https://<your-vercel-domain>/api/auth/callback/google
+
+🔑 Roles
+
+The database currently supports:
+
+student
+faculty
+coordinator
+admin
+
+Role
+
+Portal
+
+Status
+
+Student
+
+/student
+
+✅ Built
+
+Faculty
+
+/faculty
+
+✅ Built
+
+Admin
+
+/admin
+
+✅ Built
+
+Coordinator
+
+/coordinator
+
+🚧 Planned
+
+Public signup currently creates Student accounts by default. Faculty/Admin role assignment is handled through Admin user management.
+
+🐛 Current Limitations / Future Work
+
+Faculty review/grading of student assignment submissions
+
+Direct assignment file uploading
+
+Coordinator portal
+
+Events module
+
+Placement module
+
+More advanced notification creation/management workflows
+
+Detailed analytics and reporting
+
+Password-reset/email recovery flow
+
+Additional production security hardening
+
+🛠️ Important Fixes Completed
+
+Fixed Google OAuth client configuration
+
+Fixed Google login redirect/session handling
+
+Fixed role-aware authentication and middleware behavior
+
+Fixed authenticated-user redirect-to-login issue
+
+Added automatic database users for Google authentication
+
+Added signup API with hashed passwords
+
+Added Student/Faculty/Admin logout
+
+Added Back to Home navigation
+
+Added database-backed notifications
+
+Added notification read functionality
+
+Fixed Admin user-management API structure
+
+Fixed Next.js 16 dynamic-route params typing
+
+Verified successful production build
+
+Successfully deployed to Vercel
+
+👥 Team
+
+Member
+
+Responsibility
+
+Shlok
+
+Backend & Authentication
+
+Shrijan
+
+Frontend & UI/UX
+
+Sidharth
+
+Designing & Libraries
+
+📄 License
+
+Built for DevFusion 4.O — The Developers Hackathon.
+
+Not licensed for production/commercial use.
