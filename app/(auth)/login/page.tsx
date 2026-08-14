@@ -13,15 +13,28 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const router = useRouter();
-async function handleGoogleLogin() {
-  setGoogleLoading(true);
-  setError("");
 
-  await signIn("google", {
-    callbackUrl: "/student",
-  });
-}
+  // =========================
+  // GOOGLE LOGIN
+  // =========================
+  async function handleGoogleLogin() {
+    setGoogleLoading(true);
+    setError("");
 
+    try {
+      await signIn("google", {
+        callbackUrl: "/student",
+      });
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError("Unable to connect to Google. Please try again.");
+      setGoogleLoading(false);
+    }
+  }
+
+  // =========================
+  // EMAIL + PASSWORD LOGIN
+  // =========================
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -41,11 +54,13 @@ async function handleGoogleLogin() {
         return;
       }
 
+      // Get current session
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
 
       const role = session?.user?.role;
 
+      // Role-based redirect
       if (role === "faculty") {
         router.push("/faculty");
       } else if (role === "admin") {
@@ -64,14 +79,23 @@ async function handleGoogleLogin() {
     <main className="min-h-screen bg-[#eeeae2] text-[#181816]">
       <div className="grid min-h-screen lg:grid-cols-2">
 
-        {/* Left panel */}
+        {/* ========================================= */}
+        {/* LEFT PANEL */}
+        {/* ========================================= */}
         <section className="hidden bg-[#171715] lg:flex lg:min-h-screen lg:flex-col">
 
           {/* Brand */}
           <div className="p-12 xl:p-16">
-            <a href="/" className="inline-flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center border border-[#b49a6a] text-lg font-semibold text-[#d0b47a]">
-                S
+            <a
+              href="/"
+              className="inline-flex items-center gap-3"
+            >
+              <div className="flex h-11 w-11 items-center justify-center overflow-hidden border border-[#b49a6a] bg-white">
+                <img
+                  src="/icon.png"
+                  alt="Smart Campus"
+                  className="h-full w-full object-cover"
+                />
               </div>
 
               <div>
@@ -86,9 +110,10 @@ async function handleGoogleLogin() {
             </a>
           </div>
 
-          {/* Main copy */}
+          {/* Main Copy */}
           <div className="flex flex-1 items-center px-12 pb-20 xl:px-16">
             <div className="max-w-lg">
+
               <div className="mb-6 h-px w-12 bg-[#b49a6a]" />
 
               <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-[#a99572]">
@@ -116,15 +141,24 @@ async function handleGoogleLogin() {
           </div>
         </section>
 
-        {/* Right panel */}
+        {/* ========================================= */}
+        {/* RIGHT PANEL */}
+        {/* ========================================= */}
         <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
           <div className="w-full max-w-md">
 
-            {/* Mobile brand */}
+            {/* Mobile Brand */}
             <div className="mb-10 lg:hidden">
-              <a href="/" className="inline-flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center bg-[#171715] font-serif text-lg font-semibold text-[#d0b47a]">
-                  S
+              <a
+                href="/"
+                className="inline-flex items-center gap-3"
+              >
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden bg-[#171715]">
+                  <img
+                    src="/icon.png"
+                    alt="Smart Campus"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
                 <div>
@@ -154,12 +188,17 @@ async function handleGoogleLogin() {
               </p>
             </div>
 
-            {/* Form */}
+            {/* Form Card */}
             <div className="border border-[#d2cabc] bg-[#f8f5ee] p-6 shadow-[0_12px_35px_rgba(30,26,20,0.07)] sm:p-8">
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-5"
+              >
 
-                {/* Email */}
+                {/* ========================================= */}
+                {/* EMAIL */}
+                {/* ========================================= */}
                 <div>
                   <label
                     htmlFor="email"
@@ -180,21 +219,42 @@ async function handleGoogleLogin() {
                   />
                 </div>
 
-                {/* Password */}
+                {/* ========================================= */}
+                {/* PASSWORD */}
+                {/* ========================================= */}
                 <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[#4e4940]"
-                  >
-                    Password
-                  </label>
+
+                  {/* Password label + Forgot password */}
+                  <div className="mb-2 flex items-center justify-between">
+
+                    <label
+                      htmlFor="password"
+                      className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#4e4940]"
+                    >
+                      Password
+                    </label>
+
+                    <a
+                      href="/forgot-password"
+                      className="text-xs font-semibold text-[#8b7042] transition hover:text-[#5f4b2d]"
+                    >
+                      Forgot password?
+                    </a>
+                  </div>
 
                   <div className="relative">
+
                     <input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) =>
+                        setPassword(e.target.value)
+                      }
                       required
                       autoComplete="current-password"
                       placeholder="Enter your password"
@@ -204,16 +264,21 @@ async function handleGoogleLogin() {
                     <button
                       type="button"
                       onClick={() =>
-                        setShowPassword((current) => !current)
+                        setShowPassword(
+                          (current) => !current
+                        )
                       }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#766b5b] hover:text-[#181816]"
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>
+
                   </div>
                 </div>
 
-                {/* Error */}
+                {/* ========================================= */}
+                {/* ERROR */}
+                {/* ========================================= */}
                 {error && (
                   <div className="border border-red-200 bg-red-50 px-4 py-3">
                     <p className="text-sm font-medium text-red-700">
@@ -222,17 +287,26 @@ async function handleGoogleLogin() {
                   </div>
                 )}
 
-                {/* Sign in */}
+                {/* ========================================= */}
+                {/* SIGN IN BUTTON */}
+                {/* ========================================= */}
                 <button
                   type="submit"
-                  disabled={loading || googleLoading}
+                  disabled={
+                    loading || googleLoading
+                  }
                   className="w-full bg-[#181816] px-5 py-3 text-sm font-semibold text-[#f5f0e6] transition hover:bg-[#292824] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading
+                    ? "Signing in..."
+                    : "Sign In"}
                 </button>
+
               </form>
 
-              {/* Divider */}
+              {/* ========================================= */}
+              {/* DIVIDER */}
+              {/* ========================================= */}
               <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-[#d2cabc]" />
 
@@ -243,11 +317,15 @@ async function handleGoogleLogin() {
                 <div className="h-px flex-1 bg-[#d2cabc]" />
               </div>
 
-              {/* Google */}
+              {/* ========================================= */}
+              {/* GOOGLE LOGIN */}
+              {/* ========================================= */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                disabled={loading || googleLoading}
+                disabled={
+                  loading || googleLoading
+                }
                 className="flex w-full items-center justify-center gap-3 border border-[#cbc3b4] bg-[#fffdf8] px-5 py-3 text-sm font-semibold text-[#302e29] transition hover:bg-[#f1ede4] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {googleLoading ? (
@@ -300,6 +378,7 @@ async function handleGoogleLogin() {
             <p className="mt-8 text-center text-[10px] uppercase tracking-[0.15em] text-[#a29a8c]">
               Secure campus access
             </p>
+
           </div>
         </section>
       </div>
