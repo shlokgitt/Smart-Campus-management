@@ -1,75 +1,107 @@
 export default function Home() {
   return (
     <div className="min-h-screen bg-white text-zinc-900">
-      {/* TOP ANNOUNCEMENT */}
-      <div className="bg-[#f4a340] px-6 py-2 text-center text-xs font-medium text-zinc-950">
-        Smart Campus Management System — One connected platform for your campus
-      </div>
-
       {/* HEADER */}
-      <header className="bg-[#111111] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#111111]/95 text-white backdrop-blur-md">
+        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 lg:px-10">
+          {/* Brand */}
           <a href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center border-2 border-[#f28c28] bg-[#171717] text-xl font-bold text-[#f28c28]">
-              S
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white">
+              <img
+                src="/icon.png"
+                alt="Smart Campus"
+                className="h-full w-full object-cover"
+              />
             </div>
 
             <div>
-              <p className="text-lg font-semibold tracking-tight">
+              <p className="text-[17px] font-semibold tracking-tight text-white">
                 Smart Campus
               </p>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-zinc-500">
+
+              <p className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-zinc-500">
                 Management System
               </p>
             </div>
           </a>
 
-          <nav className="hidden items-center gap-8 text-sm font-medium lg:flex">
-            <a href="#about" className="transition hover:text-[#f28c28]">
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-9 text-sm text-zinc-300 lg:flex">
+            <a
+              href="#about"
+              className="transition hover:text-white"
+            >
               About
             </a>
-            <a href="#features" className="transition hover:text-[#f28c28]">
+
+            <a
+              href="#features"
+              className="transition hover:text-white"
+            >
               Features
             </a>
-            <a href="#roles" className="transition hover:text-[#f28c28]">
+
+            <a
+              href="#roles"
+              className="transition hover:text-white"
+            >
               User Roles
             </a>
-            <a href="#faq" className="transition hover:text-[#f28c28]">
+
+            <a
+              href="#faq"
+              className="transition hover:text-white"
+            >
               FAQ
             </a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-4">
             <a
               href="/login"
-              className="hidden px-3 py-2 text-sm font-medium text-zinc-300 transition hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 transition hover:text-white sm:block"
             >
               Log in
             </a>
 
             <a
               href="/signup"
-              className="bg-[#f28c28] px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-[#ff9d3f]"
+              className="rounded-lg bg-[#f28c28] px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-[#ff9d3f]"
             >
-              Sign up
+              Get started
             </a>
           </div>
         </div>
 
-        {/* MOBILE NAV */}
-        <div className="border-t border-zinc-800 px-6 py-3 lg:hidden">
-          <div className="flex justify-between text-xs font-medium text-zinc-400">
-            <a href="#about">About</a>
-            <a href="#features">Features</a>
-            <a href="#roles">Roles</a>
-            <a href="#faq">FAQ</a>
-            <a href="/login">Login</a>
+        {/* Mobile Navigation */}
+        <div className="border-t border-white/10 lg:hidden">
+          <div className="mx-auto flex max-w-7xl items-center justify-between overflow-x-auto px-6 py-3 text-xs font-medium text-zinc-400">
+            <a href="#about" className="whitespace-nowrap hover:text-white">
+              About
+            </a>
+
+            <a href="#features" className="whitespace-nowrap hover:text-white">
+              Features
+            </a>
+
+            <a href="#roles" className="whitespace-nowrap hover:text-white">
+              Roles
+            </a>
+
+            <a href="#faq" className="whitespace-nowrap hover:text-white">
+              FAQ
+            </a>
+
+            <a href="/login" className="whitespace-nowrap text-white">
+              Login
+            </a>
           </div>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="relative min-h-[620px] overflow-hidden">
+      <section className="relative min-h-[680px] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -77,25 +109,27 @@ export default function Home() {
           }}
         />
 
-        {/* Image overlay */}
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/25" />
+        {/* Refined overlay */}
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
 
-        <div className="relative mx-auto flex min-h-[620px] max-w-7xl items-center px-6 lg:px-10">
-          <div className="max-w-3xl text-white">
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-[#f5a04b]">
-              Smart Campus
-            </p>
+        <div className="relative mx-auto flex min-h-[680px] max-w-7xl items-center px-6 lg:px-10">
+          <div className="max-w-3xl pt-8">
+            <div className="mb-7 flex items-center gap-3">
+              <span className="h-px w-10 bg-[#f28c28]" />
 
-            <h1 className="font-serif text-5xl font-semibold leading-[1.05] sm:text-6xl lg:text-7xl">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#f5a04b]">
+                Smart Campus
+              </span>
+            </div>
+
+            <h1 className="max-w-3xl text-5xl font-semibold leading-[1.03] tracking-[-0.03em] text-white sm:text-6xl lg:text-[76px]">
               One platform for
               <br />
               your entire campus.
             </h1>
 
-            <div className="mt-6 h-1 w-16 bg-[#f28c28]" />
-
-            <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-200 sm:text-lg">
+            <p className="mt-7 max-w-2xl text-base leading-7 text-zinc-200 sm:text-lg">
               Attendance, assignments, submissions, notifications, and
               administration — everything your campus needs, connected in one
               place.
@@ -104,50 +138,62 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap gap-3">
               <a
                 href="/signup"
-                className="bg-[#f28c28] px-7 py-3.5 text-sm font-bold text-zinc-950 transition hover:bg-[#ff9d3f]"
+                className="rounded-lg bg-[#f28c28] px-7 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-[#ff9d3f]"
               >
-                GET STARTED
+                Get started
               </a>
 
               <a
-                href="/login"
-                className="border border-white/70 bg-black/20 px-7 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white hover:text-zinc-950"
+                href="#features"
+                className="rounded-lg border border-white/40 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white hover:text-zinc-950"
               >
-                LOG IN
+                Explore platform
               </a>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-400">
+              <span>Student portal</span>
+              <span className="hidden h-1 w-1 rounded-full bg-zinc-600 sm:block" />
+              <span>Faculty portal</span>
+              <span className="hidden h-1 w-1 rounded-full bg-zinc-600 sm:block" />
+              <span>Admin portal</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* QUICK FACTS */}
-      <section className="bg-[#151515] text-white">
+      {/* STATS */}
+      <section className="border-b border-zinc-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
-          <div className="border-b border-zinc-700 px-6 py-8 text-center lg:border-b-0 lg:border-r">
-            <p className="text-3xl font-bold text-[#f28c28]">3</p>
-            <p className="mt-2 text-xs uppercase tracking-wider text-zinc-400">
-              Core User Roles
+          <div className="border-b border-zinc-200 px-6 py-8 lg:border-b-0 lg:border-r">
+            <p className="text-2xl font-semibold text-zinc-900">3</p>
+
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+              Core user roles
             </p>
           </div>
 
-          <div className="border-b border-zinc-700 px-6 py-8 text-center lg:border-b-0 lg:border-r">
-            <p className="text-3xl font-bold text-[#f28c28]">24/7</p>
-            <p className="mt-2 text-xs uppercase tracking-wider text-zinc-400">
-              Browser Access
+          <div className="border-b border-zinc-200 px-6 py-8 lg:border-b-0 lg:border-r">
+            <p className="text-2xl font-semibold text-zinc-900">24/7</p>
+
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+              Browser access
             </p>
           </div>
 
-          <div className="border-r border-zinc-700 px-6 py-8 text-center">
-            <p className="text-3xl font-bold text-[#f28c28]">1</p>
-            <p className="mt-2 text-xs uppercase tracking-wider text-zinc-400">
-              Connected Platform
+          <div className="border-r border-zinc-200 px-6 py-8">
+            <p className="text-2xl font-semibold text-zinc-900">1</p>
+
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+              Connected platform
             </p>
           </div>
 
-          <div className="px-6 py-8 text-center">
-            <p className="text-3xl font-bold text-[#f28c28]">0</p>
-            <p className="mt-2 text-xs uppercase tracking-wider text-zinc-400">
-              Scattered Chats
+          <div className="px-6 py-8">
+            <p className="text-2xl font-semibold text-zinc-900">∞</p>
+
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+              Campus possibilities
             </p>
           </div>
         </div>
@@ -155,42 +201,47 @@ export default function Home() {
 
       {/* ABOUT */}
       <section id="about" className="bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-28">
+          <div className="grid gap-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c56f14]">
                 About Smart Campus
               </p>
 
-              <h2 className="mt-4 font-serif text-4xl leading-tight text-zinc-900 sm:text-5xl">
-                Built around the way
-                <br />
-                a campus actually works.
+              <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-tight text-zinc-900 sm:text-5xl">
+                Built around the way a campus actually works.
               </h2>
 
-              <div className="mt-6 h-1 w-12 bg-[#f28c28]" />
+              <div className="mt-7 h-px w-16 bg-[#f28c28]" />
 
-              <p className="mt-6 max-w-xl text-sm leading-7 text-zinc-600">
+              <p className="mt-7 max-w-xl text-sm leading-7 text-zinc-600 sm:text-base">
                 Smart Campus brings everyday academic operations into one
                 organized platform. Students, faculty, and administrators get
                 dedicated tools while staying connected through the same
                 system.
               </p>
 
-              <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-600">
-                The goal is simple: less scattered communication, fewer
-                disconnected tools, and a clearer campus experience.
+              <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-600 sm:text-base">
+                The goal is simple: fewer disconnected tools, less scattered
+                communication, and a clearer campus experience.
               </p>
             </div>
 
-            <div className="border-l-4 border-[#f28c28] bg-zinc-100 p-8 lg:p-10">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
-                The idea
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-8 sm:p-10">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-1 rounded-full bg-[#f28c28]" />
+
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                  The idea
+                </p>
+              </div>
+
+              <p className="mt-7 text-3xl font-medium leading-tight tracking-tight text-zinc-900 sm:text-4xl">
+                Everything important about campus life should be easy to find.
               </p>
 
-              <p className="mt-5 font-serif text-3xl leading-relaxed text-zinc-900">
-                "Everything important about campus life should be easy to
-                find."
+              <p className="mt-6 text-sm leading-6 text-zinc-500">
+                One platform. Clear responsibilities. Less friction.
               </p>
             </div>
           </div>
@@ -198,127 +249,151 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="bg-[#f4f4f2]">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-12">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
-              Platform Features
+      <section id="features" className="bg-zinc-50">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-28">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c56f14]">
+              Platform features
             </p>
 
-            <h2 className="mt-3 font-serif text-4xl text-zinc-900 sm:text-5xl">
+            <h2 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
               Everything in one place.
             </h2>
+
+            <p className="mt-5 text-sm leading-7 text-zinc-600 sm:text-base">
+              The tools students, faculty, and administrators use most — all
+              connected through one platform.
+            </p>
           </div>
 
-          <div className="grid border-l border-t border-zinc-300 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="border-b border-r border-zinc-300 bg-white p-7">
-              <span className="text-sm font-bold text-[#d97706]">01</span>
-              <h3 className="mt-7 text-lg font-bold">Attendance</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
-                Record and track attendance without maintaining separate
-                spreadsheets.
-              </p>
-            </div>
+          <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-200 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                number: "01",
+                title: "Attendance",
+                description:
+                  "Record and track attendance without maintaining separate spreadsheets.",
+              },
+              {
+                number: "02",
+                title: "Assignments",
+                description:
+                  "Create assignments, submit work, and keep deadlines visible.",
+              },
+              {
+                number: "03",
+                title: "Notifications",
+                description:
+                  "Keep important academic updates accessible from the platform.",
+              },
+              {
+                number: "04",
+                title: "Administration",
+                description:
+                  "Manage users, roles, and platform-wide access from one place.",
+              },
+            ].map((feature) => (
+              <div
+                key={feature.number}
+                className="group bg-white p-7 transition hover:bg-zinc-950"
+              >
+                <span className="text-xs font-semibold tracking-wider text-[#c56f14] group-hover:text-[#f28c28]">
+                  {feature.number}
+                </span>
 
-            <div className="border-b border-r border-zinc-300 bg-white p-7">
-              <span className="text-sm font-bold text-[#d97706]">02</span>
-              <h3 className="mt-7 text-lg font-bold">Assignments</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
-                Create assignments, submit work, and keep deadlines visible.
-              </p>
-            </div>
+                <h3 className="mt-10 text-lg font-semibold text-zinc-900 group-hover:text-white">
+                  {feature.title}
+                </h3>
 
-            <div className="border-b border-r border-zinc-300 bg-white p-7">
-              <span className="text-sm font-bold text-[#d97706]">03</span>
-              <h3 className="mt-7 text-lg font-bold">Notifications</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
-                Keep important academic updates accessible from the platform.
-              </p>
-            </div>
+                <p className="mt-3 text-sm leading-6 text-zinc-600 group-hover:text-zinc-400">
+                  {feature.description}
+                </p>
 
-            <div className="border-b border-r border-zinc-300 bg-white p-7">
-              <span className="text-sm font-bold text-[#d97706]">04</span>
-              <h3 className="mt-7 text-lg font-bold">Administration</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
-                Manage users, roles, and platform-wide access from one place.
-              </p>
-            </div>
+                <div className="mt-8 h-px w-8 bg-zinc-300 transition-all group-hover:w-14 group-hover:bg-[#f28c28]" />
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ROLES */}
       <section id="roles" className="bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-12">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-28">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c56f14]">
               Designed for everyone
             </p>
 
-            <h2 className="mt-3 font-serif text-4xl text-zinc-900 sm:text-5xl">
-              One campus. Three experiences.
+            <h2 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
+              One campus. Different experiences.
             </h2>
+
+            <p className="mt-5 text-sm leading-7 text-zinc-600 sm:text-base">
+              Every role gets the tools and access it needs without cluttering
+              the experience with unnecessary features.
+            </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="border border-zinc-300 p-8">
-              <div className="mb-8 flex h-12 w-12 items-center justify-center bg-[#151515] text-lg font-bold text-[#f28c28]">
-                S
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {[
+              {
+                title: "Students",
+                description:
+                  "View attendance, manage assignments, submit work, and stay updated with campus notifications.",
+              },
+              {
+                title: "Faculty",
+                description:
+                  "Create assignments, record attendance, and manage student academic activity.",
+              },
+              {
+                title: "Administrators",
+                description:
+                  "Manage users, roles, and platform-wide access through a centralized administrative dashboard.",
+              },
+            ].map((role) => (
+              <div
+                key={role.title}
+                className="rounded-2xl border border-zinc-200 bg-white p-7 transition hover:-translate-y-1 hover:border-zinc-300 hover:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                  <img
+                    src="/icon.png"
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                <h3 className="mt-7 text-xl font-semibold text-zinc-900">
+                  {role.title}
+                </h3>
+
+                <p className="mt-4 text-sm leading-7 text-zinc-600">
+                  {role.description}
+                </p>
               </div>
-
-              <h3 className="text-xl font-bold">Students</h3>
-
-              <p className="mt-4 text-sm leading-7 text-zinc-600">
-                View attendance, manage assignments, submit work, and stay
-                updated with campus notifications.
-              </p>
-            </div>
-
-            <div className="border border-zinc-300 p-8">
-              <div className="mb-8 flex h-12 w-12 items-center justify-center bg-[#151515] text-lg font-bold text-[#f28c28]">
-                F
-              </div>
-
-              <h3 className="text-xl font-bold">Faculty</h3>
-
-              <p className="mt-4 text-sm leading-7 text-zinc-600">
-                Create assignments, record attendance, and manage student
-                academic activity.
-              </p>
-            </div>
-
-            <div className="border border-zinc-300 p-8">
-              <div className="mb-8 flex h-12 w-12 items-center justify-center bg-[#151515] text-lg font-bold text-[#f28c28]">
-                A
-              </div>
-
-              <h3 className="text-xl font-bold">Administrators</h3>
-
-              <p className="mt-4 text-sm leading-7 text-zinc-600">
-                Manage users, roles, and platform-wide access through a
-                centralized administrative dashboard.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="bg-[#151515] text-white">
-        <div className="mx-auto max-w-4xl px-6 py-24 lg:px-10">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f28c28]">
-            Frequently Asked Questions
+      <section id="faq" className="bg-[#111111] text-white">
+        <div className="mx-auto max-w-4xl px-6 py-24 lg:px-10 lg:py-28">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#f28c28]">
+            Frequently asked questions
           </p>
 
-          <h2 className="mt-3 font-serif text-4xl sm:text-5xl">
+          <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
             Questions, answered.
           </h2>
 
-          <div className="mt-12 divide-y divide-zinc-700 border-y border-zinc-700">
+          <div className="mt-12 divide-y divide-zinc-800 border-y border-zinc-800">
             <div className="py-7">
               <h3 className="font-semibold">
                 Who can use Smart Campus?
               </h3>
+
               <p className="mt-3 text-sm leading-6 text-zinc-400">
                 Students, faculty, coordinators, and administrators can use
                 the platform with role-specific access.
@@ -329,6 +404,7 @@ export default function Home() {
               <h3 className="font-semibold">
                 Is my data secure?
               </h3>
+
               <p className="mt-3 text-sm leading-6 text-zinc-400">
                 Passwords are hashed, protected routes use role-based access,
                 and authenticated sessions are securely managed.
@@ -339,6 +415,7 @@ export default function Home() {
               <h3 className="font-semibold">
                 Do I need to install anything?
               </h3>
+
               <p className="mt-3 text-sm leading-6 text-zinc-400">
                 No. Smart Campus runs directly in your web browser.
               </p>
@@ -351,37 +428,48 @@ export default function Home() {
       <section className="bg-[#f28c28]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-16 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-950">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-950">
               Smart Campus
             </p>
 
-            <h2 className="mt-3 font-serif text-4xl text-zinc-950">
+            <h2 className="mt-3 max-w-xl text-4xl font-semibold tracking-tight text-zinc-950">
               Bring your campus together.
             </h2>
           </div>
 
           <a
             href="/signup"
-            className="w-fit bg-[#111111] px-7 py-3.5 text-sm font-bold text-white transition hover:bg-zinc-800"
+            className="w-fit rounded-lg bg-[#111111] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
-            GET STARTED
+            Get started
           </a>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="bg-[#111111] text-zinc-400">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-10">
-          <div>
-            <p className="font-serif text-base text-white">
-              Smart Campus
-            </p>
-            <p className="mt-1 text-xs text-zinc-600">
-              Management System
-            </p>
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-9 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 overflow-hidden rounded-lg bg-white">
+              <img
+                src="/icon.png"
+                alt="Smart Campus"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Smart Campus
+              </p>
+
+              <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
+                Management System
+              </p>
+            </div>
           </div>
 
-          <p className="text-xs">
+          <p className="text-xs text-zinc-500">
             Built for DevFusion 4.O — The Developers Hackathon
           </p>
         </div>
