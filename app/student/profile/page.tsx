@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface UserProfile {
   name?: string;
@@ -17,40 +17,96 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/student/profile")
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => {
-        setProfile(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch("/api/student/profile");
+
+      if (!response.ok) {
+        throw new Error("Failed to load profile");
+      }
+
+      const data = await response.json();
+
+      if (!data || typeof data !== "object") {
+        throw new Error("Invalid profile response");
+      }
+
+      setProfile(data);
+    } catch (err) {
+      console.error("Profile loading error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   if (loading) {
     return (
       <div className="space-y-6">
+        <div className="h-28 animate-pulse rounded-3xl bg-slate-200" />
         <div className="h-56 animate-pulse rounded-3xl bg-slate-200" />
         <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
       </div>
     );
   }
 
-  if (error || !profile) {
+  if (error) {
     return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h2 className="font-semibold text-red-700">
-          Unable to load profile
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="w-full max-w-md rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-lg font-bold text-red-600">
+            !
+          </div>
+
+          <h2 className="mt-4 font-semibold text-red-700">
+            Unable to load profile
+          </h2>
+
+          <p className="mt-1 text-sm leading-6 text-red-500">
+            We couldn't retrieve your profile information right now.
+          </p>
+
+          <button
+            type="button"
+            onClick={loadProfile}
+            className="mt-5 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          ?
+        </div>
+
+        <h2 className="mt-4 font-semibold text-slate-800">
+          Profile information unavailable
         </h2>
-        <p className="mt-1 text-sm text-red-500">
-          Please refresh the page and try again.
+
+        <p className="mt-1 text-sm text-slate-500">
+          We couldn't find your profile information.
         </p>
+
+        <button
+          type="button"
+          onClick={loadProfile}
+          className="mt-5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -58,6 +114,7 @@ export default function ProfilePage() {
   const initials =
     profile.name
       ?.split(" ")
+      .filter(Boolean)
       .map((word) => word[0])
       .join("")
       .slice(0, 2)
@@ -96,12 +153,12 @@ export default function ProfilePage() {
               {profile.name || "Student"}
             </h2>
 
-            <p className="mt-1 text-sm text-indigo-100">
+            <p className="mt-1 break-all text-sm text-indigo-100">
               {profile.email || "No email available"}
             </p>
 
             <span className="mt-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
-              Student
+              {profile.role || "Student"}
             </span>
           </div>
         </div>
@@ -191,7 +248,7 @@ function ProfileItem({
         {label}
       </p>
 
-      <p className="mt-2 text-sm font-semibold text-slate-800">
+      <p className="mt-2 break-words text-sm font-semibold text-slate-800">
         {value || "Not available"}
       </p>
     </div>

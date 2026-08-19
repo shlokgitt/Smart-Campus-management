@@ -9,37 +9,78 @@ export default function AssignmentDetailPage() {
 
   const [fileUrl, setFileUrl] = useState("");
   const [githubLink, setGithubLink] = useState("");
-  const [status, setStatus] = useState("");
+
+  const [status, setStatus] = useState<
+    "" | "success" | "error" | "validation"
+  >("");
+
+  const [errorMessage, setErrorMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    setSubmitting(true);
     setStatus("");
+    setErrorMessage("");
+
+    const cleanFileUrl = fileUrl.trim();
+    const cleanGithubLink = githubLink.trim();
+
+    if (!cleanFileUrl && !cleanGithubLink) {
+      setStatus("validation");
+      setErrorMessage(
+        "Please provide a file URL, GitHub repository link, or both."
+      );
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
+      const assignmentId = Array.isArray(params.id)
+        ? params.id[0]
+        : params.id;
+
+      if (!assignmentId) {
+        throw new Error("Assignment ID is missing.");
+      }
+
       const res = await fetch(
-        `/api/student/assignments/${params.id}/submit`,
+        `/api/student/assignments/${assignmentId}/submit`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            fileUrl,
-            githubLink,
+            fileUrl: cleanFileUrl,
+            githubLink: cleanGithubLink,
           }),
         }
       );
 
-      if (res.ok) {
-        setStatus("success");
-      } else {
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
         setStatus("error");
+        setErrorMessage(
+          data?.error ||
+            "We couldn't submit your assignment. Please check your details and try again."
+        );
+        return;
       }
-    } catch {
+
+      setStatus("success");
+
+      setFileUrl("");
+      setGithubLink("");
+    } catch (error) {
+      console.error("Assignment submission error:", error);
+
       setStatus("error");
+      setErrorMessage(
+        "Something went wrong while submitting your assignment. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -49,6 +90,7 @@ export default function AssignmentDetailPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Back */}
       <button
+        type="button"
         onClick={() => router.back()}
         className="text-sm font-semibold text-slate-500 transition hover:text-indigo-600"
       >
@@ -99,7 +141,8 @@ export default function AssignmentDetailPage() {
               value={fileUrl}
               onChange={(e) => setFileUrl(e.target.value)}
               placeholder="https://drive.google.com/..."
-              className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
+              disabled={submitting}
+              className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 disabled:cursor-not-allowed disabled:bg-slate-50"
             />
           </div>
 
@@ -125,7 +168,8 @@ export default function AssignmentDetailPage() {
               value={githubLink}
               onChange={(e) => setGithubLink(e.target.value)}
               placeholder="https://github.com/username/repository"
-              className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
+              disabled={submitting}
+              className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 disabled:cursor-not-allowed disabled:bg-slate-50"
             />
           </div>
 
@@ -142,23 +186,49 @@ export default function AssignmentDetailPage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-indigo-700">
-                  Make sure your links are accessible to your faculty before
-                  submitting.
+                  At least one submission link is required. Make sure your
+                  links are accessible to your faculty before submitting.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Status */}
-          {status === "success" && (
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              ✓ Assignment submitted successfully!
+          {/* Validation */}
+          {status === "validation" && (
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-semibold text-amber-700">
+                Submission details required
+              </p>
+
+              <p className="mt-1 text-xs text-amber-600">
+                {errorMessage}
+              </p>
             </div>
           )}
 
+          {/* Success */}
+          {status === "success" && (
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <p className="text-sm font-semibold text-emerald-700">
+                ✓ Assignment submitted successfully!
+              </p>
+
+              <p className="mt-1 text-xs text-emerald-600">
+                Your submission has been recorded.
+              </p>
+            </div>
+          )}
+
+          {/* Error */}
           {status === "error" && (
-            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-              Submission failed. Please check your links and try again.
+            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+              <p className="text-sm font-semibold text-red-700">
+                Submission failed
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-red-600">
+                {errorMessage}
+              </p>
             </div>
           )}
 

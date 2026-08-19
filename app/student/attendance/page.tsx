@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface AttendanceRecord {
   _id: string;
@@ -18,32 +18,45 @@ interface AttendanceData {
 
 export default function AttendancePage() {
   const [data, setData] = useState<AttendanceData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/student/attendance")
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then(setData)
-      .catch(() => setError(true));
+  const loadAttendance = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch("/api/student/attendance");
+
+      if (!response.ok) {
+        throw new Error("Failed to load attendance");
+      }
+
+      const result = await response.json();
+
+      if (!result || typeof result !== "object") {
+        throw new Error("Invalid attendance response");
+      }
+
+      setData({
+        percentage: Number(result.percentage) || 0,
+        present: Number(result.present) || 0,
+        total: Number(result.total) || 0,
+        records: Array.isArray(result.records) ? result.records : [],
+      });
+    } catch (err) {
+      console.error("Attendance loading error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h2 className="font-semibold text-red-700">
-          Unable to load attendance
-        </h2>
-        <p className="mt-1 text-sm text-red-500">
-          Please refresh the page and try again.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    loadAttendance();
+  }, [loadAttendance]);
 
-  if (!data) {
+  if (loading) {
     return (
       <div className="space-y-5">
         <div className="h-28 animate-pulse rounded-3xl bg-slate-200" />
@@ -53,7 +66,62 @@ export default function AttendancePage() {
     );
   }
 
-  const percentage = Number(data.percentage) || 0;
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="w-full max-w-md rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-lg font-bold text-red-600">
+            !
+          </div>
+
+          <h2 className="mt-4 font-semibold text-red-700">
+            Unable to load attendance
+          </h2>
+
+          <p className="mt-1 text-sm leading-6 text-red-500">
+            We couldn't retrieve your attendance information right now.
+          </p>
+
+          <button
+            type="button"
+            onClick={loadAttendance}
+            className="mt-5 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+        <h2 className="font-semibold text-slate-800">
+          Attendance information unavailable
+        </h2>
+
+        <p className="mt-1 text-sm text-slate-500">
+          No attendance data could be loaded.
+        </p>
+
+        <button
+          type="button"
+          onClick={loadAttendance}
+          className="mt-5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  const percentage = Math.min(
+    100,
+    Math.max(0, Number(data.percentage) || 0)
+  );
+
+  const hasRecords = data.records.length > 0;
 
   return (
     <div className="space-y-8">
@@ -87,7 +155,10 @@ export default function AttendancePage() {
               />
 
               <div className="text-center">
-                <p className="text-4xl font-bold">{percentage}%</p>
+                <p className="text-4xl font-bold">
+                  {percentage.toFixed(1)}%
+                </p>
+
                 <p className="mt-1 text-xs font-medium text-indigo-100">
                   Overall
                 </p>
@@ -101,17 +172,24 @@ export default function AttendancePage() {
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Summary */}
           <div className="p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-slate-900">
-              Attendance summary
-            </h2>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Attendance summary
+              </p>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Your attendance across all recorded classes.
-            </p>
+              <h2 className="mt-1 text-xl font-bold text-slate-900">
+                Your attendance record
+              </h2>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Review your attendance history and keep track of your
+                attendance percentage.
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl bg-emerald-50 p-5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
                   Present
@@ -127,7 +205,7 @@ export default function AttendancePage() {
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Total
                 </p>
 
@@ -139,184 +217,82 @@ export default function AttendancePage() {
                   Classes recorded
                 </p>
               </div>
-
-              <div className="rounded-2xl bg-amber-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">
-                  Missed
-                </p>
-
-                <p className="mt-2 text-3xl font-bold text-amber-700">
-                  {Math.max(data.total - data.present, 0)}
-                </p>
-
-                <p className="mt-1 text-xs text-amber-600">
-                  Classes missed
-                </p>
-              </div>
-            </div>
-
-            {/* Progress */}
-            <div className="mt-8">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700">
-                  Attendance progress
-                </span>
-
-                <span className="font-semibold text-indigo-600">
-                  {percentage}%
-                </span>
-              </div>
-
-              <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-indigo-600 transition-all"
-                  style={{
-                    width: `${Math.min(Math.max(percentage, 0), 100)}%`,
-                  }}
-                />
-              </div>
-
-              <p className="mt-2 text-xs text-slate-400">
-                Recommended minimum: 75%
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Records */}
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 p-6">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-6 py-5">
           <h2 className="font-bold text-slate-900">
             Attendance history
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Recent attendance records.
+            Your recently recorded attendance.
           </p>
         </div>
 
-        {data.records.length === 0 ? (
+        {!hasRecords ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-lg text-slate-400">
               ✓
             </div>
 
             <h3 className="mt-4 font-semibold text-slate-800">
-              No attendance records
+              No attendance records yet
             </h3>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Attendance records will appear here once classes are recorded.
+            <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">
+              Your attendance records will appear here once your faculty
+              starts marking attendance.
             </p>
           </div>
         ) : (
-          <>
-            {/* Desktop */}
-            <div className="hidden overflow-x-auto md:block">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/70 text-left">
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Subject
-                    </th>
+          <div className="divide-y divide-slate-100">
+            {data.records.map((record) => {
+              const recordDate = new Date(record.date);
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Date
-                    </th>
+              const isPresent =
+                record.status.toLowerCase() === "present";
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
+              return (
+                <div
+                  key={record._id}
+                  className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+                >
+                  <div>
+                    <h3 className="font-semibold text-slate-800">
+                      {record.subject || "Subject unavailable"}
+                    </h3>
 
-                <tbody>
-                  {data.records.map((record) => {
-                    const present =
-                      record.status.toLowerCase() === "present";
-
-                    return (
-                      <tr
-                        key={record._id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60"
-                      >
-                        <td className="px-6 py-4">
-                          <p className="text-sm font-semibold text-slate-800">
-                            {record.subject}
-                          </p>
-                        </td>
-
-                        <td className="px-6 py-4 text-sm text-slate-500">
-                          {new Date(record.date).toLocaleDateString(
-                            "en-IN",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              present
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-red-50 text-red-700"
-                            }`}
-                          >
-                            {record.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile */}
-            <div className="divide-y divide-slate-100 md:hidden">
-              {data.records.map((record) => {
-                const present =
-                  record.status.toLowerCase() === "present";
-
-                return (
-                  <div key={record._id} className="p-5">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-800">
-                        {record.subject}
-                      </p>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          present
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {record.status}
-                      </span>
-                    </div>
-
-                    <p className="mt-2 text-xs text-slate-400">
-                      {new Date(record.date).toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        }
-                      )}
+                    <p className="mt-1 text-sm text-slate-500">
+                      {Number.isNaN(recordDate.getTime())
+                        ? "Date unavailable"
+                        : recordDate.toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
                     </p>
                   </div>
-                );
-              })}
-            </div>
-          </>
+
+                  <span
+                    className={`w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      isPresent
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-red-50 text-red-700"
+                    }`}
+                  >
+                    {record.status || "Unknown"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>
   );
-}
+} 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Assignment {
   _id: string;
@@ -15,21 +15,35 @@ export default function AssignmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/student/assignments")
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((data) => {
-        setAssignments(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
+  const loadAssignments = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch("/api/student/assignments");
+
+      if (!response.ok) {
+        throw new Error("Failed to load assignments");
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid assignments response");
+      }
+
+      setAssignments(data);
+    } catch (err) {
+      console.error("Assignments loading error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadAssignments();
+  }, [loadAssignments]);
 
   if (loading) {
     return (
@@ -52,14 +66,29 @@ export default function AssignmentsPage() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h2 className="font-semibold text-red-700">
-          Unable to load assignments
-        </h2>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="w-full max-w-md rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-lg font-bold text-red-600">
+            !
+          </div>
 
-        <p className="mt-1 text-sm text-red-500">
-          Please refresh the page and try again.
-        </p>
+          <h2 className="mt-4 font-semibold text-red-700">
+            Unable to load assignments
+          </h2>
+
+          <p className="mt-1 text-sm leading-6 text-red-500">
+            We couldn't retrieve your assignments right now. Please try
+            again.
+          </p>
+
+          <button
+            type="button"
+            onClick={loadAssignments}
+            className="mt-5 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -149,7 +178,7 @@ export default function AssignmentsPage() {
 
         {assignments.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-lg text-slate-400">
               ▣
             </div>
 
@@ -157,16 +186,20 @@ export default function AssignmentsPage() {
               No assignments yet
             </h3>
 
-            <p className="mt-1 text-sm text-slate-500">
-              New assignments from your faculty will appear here.
+            <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">
+              You don't have any assignments at the moment. New assignments
+              from your faculty will appear here.
             </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {assignments.map((assignment) => {
               const deadline = new Date(assignment.deadline);
+
               const overdue =
-                !assignment.submitted && deadline.getTime() < Date.now();
+                !assignment.submitted &&
+                !Number.isNaN(deadline.getTime()) &&
+                deadline.getTime() < Date.now();
 
               return (
                 <Link
@@ -181,15 +214,15 @@ export default function AssignmentsPage() {
                           assignment.submitted
                             ? "bg-emerald-50 text-emerald-600"
                             : overdue
-                            ? "bg-red-50 text-red-600"
-                            : "bg-indigo-50 text-indigo-600"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-indigo-50 text-indigo-600"
                         }`}
                       >
                         {assignment.submitted
                           ? "✓"
                           : overdue
-                          ? "!"
-                          : "▣"}
+                            ? "!"
+                            : "▣"}
                       </div>
 
                       <div className="min-w-0">
@@ -199,11 +232,13 @@ export default function AssignmentsPage() {
 
                         <p className="mt-1 text-sm text-slate-500">
                           Due{" "}
-                          {deadline.toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {Number.isNaN(deadline.getTime())
+                            ? "Date unavailable"
+                            : deadline.toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
                         </p>
                       </div>
                     </div>
@@ -214,15 +249,15 @@ export default function AssignmentsPage() {
                           assignment.submitted
                             ? "bg-emerald-50 text-emerald-700"
                             : overdue
-                            ? "bg-red-50 text-red-700"
-                            : "bg-amber-50 text-amber-700"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-amber-50 text-amber-700"
                         }`}
                       >
                         {assignment.submitted
                           ? "Submitted"
                           : overdue
-                          ? "Overdue"
-                          : "Pending"}
+                            ? "Overdue"
+                            : "Pending"}
                       </span>
 
                       <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-indigo-500">
