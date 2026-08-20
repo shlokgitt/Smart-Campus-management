@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+interface Student {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 export default function FacultyAttendancePage() {
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState("");
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -15,35 +21,44 @@ export default function FacultyAttendancePage() {
   const [message, setMessage] = useState<"success" | "error" | "">("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    async function loadStudents() {
-      try {
-        setLoadingStudents(true);
-        setStudentError(false);
+  async function loadStudents() {
+    try {
+      setLoadingStudents(true);
+      setStudentError(false);
 
-        const res = await fetch("/api/faculty/students");
+      const res = await fetch("/api/faculty/students");
 
-        if (!res.ok) {
-          throw new Error("Failed to load students");
-        }
-
-        const data = await res.json();
-
-        setStudents(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Failed to load students:", error);
-        setStudentError(true);
-        setStudents([]);
-      } finally {
-        setLoadingStudents(false);
+      if (!res.ok) {
+        throw new Error("Failed to load students");
       }
-    }
 
+      const data = await res.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid student data");
+      }
+
+      setStudents(data);
+    } catch (error) {
+      console.error("Failed to load students:", error);
+      setStudentError(true);
+      setStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
+  }
+
+  useEffect(() => {
     loadStudents();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!studentId || !subject || !date) {
+      setMessage("error");
+      return;
+    }
 
     setSubmitting(true);
     setMessage("");
@@ -68,8 +83,7 @@ export default function FacultyAttendancePage() {
 
       setMessage("success");
 
-      // Keep student and date selected, but reset the subject
-      // so another attendance record can be entered quickly.
+      // Keep student and date selected, but reset subject.
       setSubject("");
 
       setTimeout(() => {
@@ -122,7 +136,6 @@ export default function FacultyAttendancePage() {
 
       {/* Attendance Card */}
       <section className="max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* Card Header */}
         <div className="border-b border-slate-100 bg-slate-50/70 px-6 py-5 sm:px-7">
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
@@ -163,46 +176,60 @@ export default function FacultyAttendancePage() {
               Student
             </label>
 
-            {studentError ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            {loadingStudents ? (
+              <div className="h-12 w-full animate-pulse rounded-xl bg-slate-100" />
+            ) : studentError ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-4">
                 <p className="text-sm font-semibold text-red-700">
                   Unable to load students
                 </p>
 
                 <p className="mt-1 text-xs text-red-600">
-                  Refresh the page and try again.
+                  Something went wrong while loading the student list.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={loadStudents}
+                  className="mt-3 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : students.length === 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+                <p className="text-sm font-semibold text-amber-800">
+                  No students available
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-amber-700">
+                  There are currently no students available for attendance
+                  marking.
                 </p>
               </div>
             ) : (
-              <select
-                id="student"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                required
-                disabled={loadingStudents || students.length === 0}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">
-                  {loadingStudents
-                    ? "Loading students..."
-                    : students.length === 0
-                    ? "No students available"
-                    : "Select a student"}
-                </option>
+              <>
+                <select
+                  id="student"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
+                >
+                  <option value="">Select a student</option>
 
-                {students.map((s: any) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name} ({s.email})
-                  </option>
-                ))}
-              </select>
-            )}
+                  {students.map((student) => (
+                    <option key={student._id} value={student._id}>
+                      {student.name} ({student.email})
+                    </option>
+                  ))}
+                </select>
 
-            {!studentError && !loadingStudents && students.length > 0 && (
-              <p className="mt-2 text-xs text-slate-400">
-                {students.length} student
-                {students.length === 1 ? "" : "s"} available.
-              </p>
+                <p className="mt-2 text-xs text-slate-400">
+                  {students.length} student
+                  {students.length === 1 ? "" : "s"} available.
+                </p>
+              </>
             )}
           </div>
 
@@ -221,7 +248,8 @@ export default function FacultyAttendancePage() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
+                disabled={studentError || students.length === 0}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
                 placeholder="e.g. Data Structures"
               />
             </div>
@@ -240,7 +268,8 @@ export default function FacultyAttendancePage() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
+                disabled={studentError || students.length === 0}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
               />
             </div>
           </div>
@@ -261,8 +290,9 @@ export default function FacultyAttendancePage() {
               <button
                 type="button"
                 onClick={() => setStatus("present")}
+                disabled={studentError || students.length === 0}
                 aria-pressed={status === "present"}
-                className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition ${
+                className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   status === "present"
                     ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
                     : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-emerald-50/50"
@@ -284,8 +314,9 @@ export default function FacultyAttendancePage() {
               <button
                 type="button"
                 onClick={() => setStatus("absent")}
+                disabled={studentError || students.length === 0}
                 aria-pressed={status === "absent"}
-                className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition ${
+                className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   status === "absent"
                     ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
                     : "border-slate-200 bg-white text-slate-500 hover:border-red-200 hover:bg-red-50/50"
@@ -347,7 +378,12 @@ export default function FacultyAttendancePage() {
           <div className="border-t border-slate-100 pt-5">
             <button
               type="submit"
-              disabled={submitting || loadingStudents || studentError}
+              disabled={
+                submitting ||
+                loadingStudents ||
+                studentError ||
+                students.length === 0
+              }
               className="w-full rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Saving Attendance..." : "Mark Attendance"}

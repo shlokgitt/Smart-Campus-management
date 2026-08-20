@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 
+interface Assignment {
+  _id: string;
+  title: string;
+  description?: string;
+  subject?: string;
+  deadline: string;
+}
+
 export default function FacultyAssignmentsPage() {
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -17,6 +26,7 @@ export default function FacultyAssignmentsPage() {
   async function loadAssignments() {
     try {
       setLoading(true);
+      setLoadError(false);
 
       const res = await fetch("/api/faculty/assignments");
 
@@ -26,9 +36,14 @@ export default function FacultyAssignmentsPage() {
 
       const data = await res.json();
 
-      setAssignments(Array.isArray(data) ? data : []);
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid assignment data");
+      }
+
+      setAssignments(data);
     } catch (error) {
       console.error("Failed to load assignments:", error);
+      setLoadError(true);
       setAssignments([]);
     } finally {
       setLoading(false);
@@ -83,6 +98,14 @@ export default function FacultyAssignmentsPage() {
     }
   }
 
+  function clearForm() {
+    setTitle("");
+    setDescription("");
+    setSubject("");
+    setDeadline("");
+    setStatus("");
+  }
+
   function formatDeadline(date: string) {
     const deadlineDate = new Date(date);
 
@@ -98,7 +121,13 @@ export default function FacultyAssignmentsPage() {
   }
 
   function isOverdue(date: string) {
-    return new Date(date).getTime() < Date.now();
+    const timestamp = new Date(date).getTime();
+
+    if (Number.isNaN(timestamp)) {
+      return false;
+    }
+
+    return timestamp < Date.now();
   }
 
   return (
@@ -173,7 +202,6 @@ export default function FacultyAssignmentsPage() {
 
         <form onSubmit={handleCreate} className="p-6 sm:p-7">
           <div className="grid gap-5 sm:grid-cols-2">
-            {/* Title */}
             <div className="sm:col-span-2">
               <label
                 htmlFor="assignment-title"
@@ -192,7 +220,6 @@ export default function FacultyAssignmentsPage() {
               />
             </div>
 
-            {/* Subject */}
             <div>
               <label
                 htmlFor="assignment-subject"
@@ -210,7 +237,6 @@ export default function FacultyAssignmentsPage() {
               />
             </div>
 
-            {/* Deadline */}
             <div>
               <label
                 htmlFor="assignment-deadline"
@@ -229,7 +255,6 @@ export default function FacultyAssignmentsPage() {
               />
             </div>
 
-            {/* Description */}
             <div className="sm:col-span-2">
               <label
                 htmlFor="assignment-description"
@@ -291,17 +316,10 @@ export default function FacultyAssignmentsPage() {
             </div>
           )}
 
-          {/* Submit */}
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={() => {
-                setTitle("");
-                setDescription("");
-                setSubject("");
-                setDeadline("");
-                setStatus("");
-              }}
+              onClick={clearForm}
               disabled={submitting}
               className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -330,6 +348,8 @@ export default function FacultyAssignmentsPage() {
             <p className="mt-1 text-sm text-slate-500">
               {loading
                 ? "Loading your assignments..."
+                : loadError
+                ? "Unable to load assignments"
                 : `${assignments.length} assignment${
                     assignments.length === 1 ? "" : "s"
                   } published`}
@@ -338,6 +358,7 @@ export default function FacultyAssignmentsPage() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {/* Loading */}
           {loading ? (
             <div className="divide-y divide-slate-100">
               {[1, 2, 3].map((i) => (
@@ -348,7 +369,32 @@ export default function FacultyAssignmentsPage() {
                 </div>
               ))}
             </div>
+          ) : loadError ? (
+            /* Error */
+            <div className="px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-xl font-bold text-red-500">
+                !
+              </div>
+
+              <h3 className="mt-4 text-sm font-semibold text-slate-800">
+                Unable to load assignments
+              </h3>
+
+              <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
+                Something went wrong while loading your assignments.
+                Please try again.
+              </p>
+
+              <button
+                type="button"
+                onClick={loadAssignments}
+                className="mt-5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+              >
+                Try again
+              </button>
+            </div>
           ) : assignments.length === 0 ? (
+            /* Empty */
             <div className="px-6 py-14 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                 <svg
@@ -375,8 +421,9 @@ export default function FacultyAssignmentsPage() {
               </p>
             </div>
           ) : (
+            /* List */
             <div className="divide-y divide-slate-100">
-              {assignments.map((a: any) => {
+              {assignments.map((a) => {
                 const overdue = isOverdue(a.deadline);
 
                 return (
@@ -408,9 +455,7 @@ export default function FacultyAssignmentsPage() {
                       <div className="flex shrink-0 items-center gap-3">
                         <div
                           className={`rounded-xl px-3 py-2 text-right ${
-                            overdue
-                              ? "bg-red-50"
-                              : "bg-slate-50"
+                            overdue ? "bg-red-50" : "bg-slate-50"
                           }`}
                         >
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -419,9 +464,7 @@ export default function FacultyAssignmentsPage() {
 
                           <p
                             className={`mt-0.5 text-xs font-semibold ${
-                              overdue
-                                ? "text-red-600"
-                                : "text-slate-700"
+                              overdue ? "text-red-600" : "text-slate-700"
                             }`}
                           >
                             {formatDeadline(a.deadline)}

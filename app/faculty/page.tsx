@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 export default function FacultyDashboard() {
   const [assignmentCount, setAssignmentCount] = useState<number | null>(null);
   const [studentCount, setStudentCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
+        setLoading(true);
+        setError(false);
+
         const [assignmentsRes, studentsRes] = await Promise.all([
           fetch("/api/faculty/assignments"),
           fetch("/api/faculty/students"),
@@ -32,11 +36,70 @@ export default function FacultyDashboard() {
       } catch (err) {
         console.error("Faculty dashboard error:", err);
         setError(true);
+      } finally {
+        setLoading(false);
       }
     }
 
     loadDashboard();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        {/* Hero skeleton */}
+        <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+
+        {/* Overview skeleton */}
+        <section>
+          <div className="mb-4">
+            <div className="h-6 w-32 animate-pulse rounded bg-slate-200" />
+            <div className="mt-2 h-4 w-64 animate-pulse rounded bg-slate-100" />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[1, 2].map((item) => (
+              <div
+                key={item}
+                className="h-40 animate-pulse rounded-2xl bg-slate-200"
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Quick actions skeleton */}
+        <div className="h-52 animate-pulse rounded-2xl bg-slate-200" />
+
+        {/* Footer skeleton */}
+        <div className="h-24 animate-pulse rounded-2xl bg-slate-100" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 font-bold text-red-600">
+              !
+            </div>
+
+            <div>
+              <h2 className="font-semibold text-red-800">
+                Unable to load faculty dashboard
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-red-600">
+                We couldn't load your dashboard information. Please refresh
+                the page and try again.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -52,8 +115,8 @@ export default function FacultyDashboard() {
           </h1>
 
           <p className="mt-3 max-w-xl text-sm leading-6 text-indigo-100 sm:text-base">
-            Manage your assignments, track students, and keep your
-            academic activities organized from one place.
+            Manage your assignments, track students, and keep your academic
+            activities organized from one place.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -73,18 +136,9 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        {/* Decorative shapes */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-32 right-20 h-72 w-72 rounded-full bg-white/5" />
       </section>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          Unable to load some dashboard information. Please refresh
-          the page and try again.
-        </div>
-      )}
 
       {/* Overview */}
       <section>
@@ -108,11 +162,7 @@ export default function FacultyDashboard() {
                 </p>
 
                 <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-                  {assignmentCount === null ? (
-                    <span className="inline-block h-10 w-12 animate-pulse rounded-lg bg-slate-100" />
-                  ) : (
-                    assignmentCount
-                  )}
+                  {assignmentCount ?? 0}
                 </p>
 
                 <p className="mt-2 text-sm text-slate-500">
@@ -137,6 +187,12 @@ export default function FacultyDashboard() {
               </div>
             </div>
 
+            {assignmentCount === 0 && (
+              <p className="mt-4 text-xs font-medium text-slate-400">
+                No assignments created yet.
+              </p>
+            )}
+
             <a
               href="/faculty/assignments"
               className="mt-5 inline-flex text-sm font-semibold text-indigo-600 transition hover:text-indigo-700"
@@ -154,11 +210,7 @@ export default function FacultyDashboard() {
                 </p>
 
                 <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-                  {studentCount === null ? (
-                    <span className="inline-block h-10 w-12 animate-pulse rounded-lg bg-slate-100" />
-                  ) : (
-                    studentCount
-                  )}
+                  {studentCount ?? 0}
                 </p>
 
                 <p className="mt-2 text-sm text-slate-500">
@@ -182,6 +234,12 @@ export default function FacultyDashboard() {
                 </svg>
               </div>
             </div>
+
+            {studentCount === 0 && (
+              <p className="mt-4 text-xs font-medium text-slate-400">
+                No students are currently available.
+              </p>
+            )}
 
             <a
               href="/faculty/attendance"
@@ -285,8 +343,8 @@ export default function FacultyDashboard() {
         </p>
 
         <p className="mt-1 text-sm text-slate-500">
-          Use assignments and attendance tools to keep your student
-          activity up to date.
+          Use assignments and attendance tools to keep your student activity
+          up to date.
         </p>
       </div>
     </div>
