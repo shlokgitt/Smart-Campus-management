@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const roleColors: Record<string, string> = {
   admin: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -18,11 +18,19 @@ const roleIcons: Record<string, string> = {
 
 const roles = ["student", "faculty", "coordinator", "admin"];
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+interface User {
+  _id: string;
+  name?: string;
+  email?: string;
+  role: string;
+}
 
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [savingRole, setSavingRole] = useState(false);
 
@@ -32,33 +40,35 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  function loadUsers() {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     setError("");
 
-    fetch("/api/admin/users")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to load users");
-        }
+    try {
+      const res = await fetch("/api/admin/users");
 
-        return res.json();
-      })
-      .then((data) => {
-        setUsers(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load users.");
-        setLoading(false);
-      });
-  }
+      if (!res.ok) {
+        throw new Error("Failed to load users");
+      }
+
+      const data = await res.json();
+
+      setUsers(Array.isArray(data) ? data : []);
+    } catch {
+      setUsers([]);
+      setLoadError(true);
+      setError("");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
-  function openRoleModal(user: any) {
+  function openRoleModal(user: User) {
     setSelectedUser(user);
     setSelectedRole(user.role);
     setMessage("");
@@ -189,7 +199,6 @@ export default function AdminUsersPage() {
   return (
     <>
       <div className="space-y-8">
-
         {/* Header */}
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
@@ -218,7 +227,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {/* Success Message */}
+        {/* Success */}
         {message && (
           <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100">
@@ -229,7 +238,7 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {/* Error Message */}
+        {/* Action error */}
         {error && (
           <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100">
@@ -243,26 +252,11 @@ export default function AdminUsersPage() {
         {/* Role overview */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            {
-              key: "all",
-              label: "All users",
-            },
-            {
-              key: "student",
-              label: "Students",
-            },
-            {
-              key: "faculty",
-              label: "Faculty",
-            },
-            {
-              key: "coordinator",
-              label: "Coordinators",
-            },
-            {
-              key: "admin",
-              label: "Admins",
-            },
+            { key: "all", label: "All users" },
+            { key: "student", label: "Students" },
+            { key: "faculty", label: "Faculty" },
+            { key: "coordinator", label: "Coordinators" },
+            { key: "admin", label: "Admins" },
           ].map((item) => {
             const active = roleFilter === item.key;
 
@@ -279,9 +273,7 @@ export default function AdminUsersPage() {
               >
                 <p
                   className={`text-[10px] font-semibold uppercase tracking-wider ${
-                    active
-                      ? "text-indigo-600"
-                      : "text-slate-400"
+                    active ? "text-indigo-600" : "text-slate-400"
                   }`}
                 >
                   {item.label}
@@ -299,11 +291,9 @@ export default function AdminUsersPage() {
 
         {/* Users container */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-          {/* Table toolbar */}
+          {/* Toolbar */}
           <div className="border-b border-slate-100 p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
                   Campus accounts
@@ -312,6 +302,8 @@ export default function AdminUsersPage() {
                 <p className="mt-1 text-sm text-slate-500">
                   {loading
                     ? "Loading accounts..."
+                    : loadError
+                    ? "Unable to load accounts"
                     : `${filteredUsers.length} account${
                         filteredUsers.length !== 1 ? "s" : ""
                       } shown`}
@@ -319,38 +311,32 @@ export default function AdminUsersPage() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  disabled={loading || loadError}
+                  placeholder="Search name or email..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-64"
+                />
 
-                {/* Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search name or email..."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-64"
-                  />
-                </div>
-
-                {/* Role filter */}
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                  disabled={loading || loadError}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="all">All roles</option>
                   <option value="student">Students</option>
                   <option value="faculty">Faculty</option>
-                  <option value="coordinator">
-                    Coordinators
-                  </option>
+                  <option value="coordinator">Coordinators</option>
                   <option value="admin">Admins</option>
                 </select>
-
               </div>
             </div>
           </div>
 
-          {/* Table */}
+          {/* Loading */}
           {loading ? (
             <div className="space-y-4 p-6">
               {[1, 2, 3, 4].map((item) => (
@@ -360,19 +346,46 @@ export default function AdminUsersPage() {
                 />
               ))}
             </div>
-          ) : filteredUsers.length === 0 ? (
+          ) : loadError ? (
+            /* API Error */
             <div className="flex min-h-[350px] flex-col items-center justify-center px-6 py-12 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-xl font-bold text-red-500">
+                !
+              </div>
 
+              <h3 className="mt-4 text-base font-semibold text-slate-800">
+                Unable to load users
+              </h3>
+
+              <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">
+                We couldn't retrieve the campus accounts. Please try again.
+              </p>
+
+              <button
+                type="button"
+                onClick={loadUsers}
+                className="mt-5 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-indigo-700"
+              >
+                Try again
+              </button>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            /* Empty */
+            <div className="flex min-h-[350px] flex-col items-center justify-center px-6 py-12 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400">
                 ♙
               </div>
 
               <h3 className="mt-4 text-base font-semibold text-slate-800">
-                No users found
+                {users.length === 0
+                  ? "No users yet"
+                  : "No users found"}
               </h3>
 
               <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">
-                Try changing your search or role filter.
+                {users.length === 0
+                  ? "No campus accounts have been registered yet."
+                  : "Try changing your search or role filter."}
               </p>
 
               {(search || roleFilter !== "all") && (
@@ -389,9 +402,9 @@ export default function AdminUsersPage() {
               )}
             </div>
           ) : (
+            /* Data */
             <div className="overflow-x-auto">
               <table className="w-full min-w-[850px] text-left text-sm">
-
                 <thead className="border-b border-slate-100 bg-slate-50/80">
                   <tr>
                     <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -413,22 +426,18 @@ export default function AdminUsersPage() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-
-                  {filteredUsers.map((user: any) => (
+                  {filteredUsers.map((user) => (
                     <tr
                       key={user._id}
                       className="transition hover:bg-slate-50/70"
                     >
-
-                      {/* User */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                             {user.name
                               ? user.name
                                   .split(" ")
-                                  .map((part: string) => part[0])
+                                  .map((part) => part[0])
                                   .join("")
                                   .slice(0, 2)
                                   .toUpperCase()
@@ -437,23 +446,20 @@ export default function AdminUsersPage() {
 
                           <div>
                             <p className="font-semibold text-slate-900">
-                              {user.name}
+                              {user.name || "Unnamed user"}
                             </p>
 
                             <p className="mt-0.5 text-xs text-slate-400">
                               Campus account
                             </p>
                           </div>
-
                         </div>
                       </td>
 
-                      {/* Email */}
                       <td className="px-6 py-4 text-slate-600">
-                        {user.email}
+                        {user.email || "No email"}
                       </td>
 
-                      {/* Role */}
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
@@ -466,15 +472,13 @@ export default function AdminUsersPage() {
                           </span>
 
                           <span className="capitalize">
-                            {user.role}
+                            {user.role || "unknown"}
                           </span>
                         </span>
                       </td>
 
-                      {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
-
                           <button
                             type="button"
                             onClick={() => openRoleModal(user)}
@@ -486,19 +490,16 @@ export default function AdminUsersPage() {
                           <button
                             type="button"
                             onClick={() =>
-                              deleteUser(user._id, user.name)
+                              deleteUser(user._id, user.name || "this user")
                             }
                             className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
                           >
                             Delete
                           </button>
-
                         </div>
                       </td>
-
                     </tr>
                   ))}
-
                 </tbody>
               </table>
             </div>
@@ -517,11 +518,8 @@ export default function AdminUsersPage() {
           }}
         >
           <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-
-            {/* Modal header */}
             <div className="border-b border-slate-100 px-6 py-5">
               <div className="flex items-start justify-between">
-
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
                     Access control
@@ -544,20 +542,16 @@ export default function AdminUsersPage() {
                 >
                   ×
                 </button>
-
               </div>
             </div>
 
-            {/* User */}
             <div className="px-6 pt-5">
-
               <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
                   {selectedUser.name
                     ? selectedUser.name
                         .split(" ")
-                        .map((part: string) => part[0])
+                        .map((part) => part[0])
                         .join("")
                         .slice(0, 2)
                         .toUpperCase()
@@ -566,21 +560,17 @@ export default function AdminUsersPage() {
 
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-slate-900">
-                    {selectedUser.name}
+                    {selectedUser.name || "Unnamed user"}
                   </p>
 
                   <p className="truncate text-sm text-slate-500">
-                    {selectedUser.email}
+                    {selectedUser.email || "No email"}
                   </p>
                 </div>
-
               </div>
-
             </div>
 
-            {/* Role */}
             <div className="px-6 pt-5">
-
               <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Select Role
               </label>
@@ -597,10 +587,8 @@ export default function AdminUsersPage() {
                   </option>
                 ))}
               </select>
-
             </div>
 
-            {/* Warning */}
             {selectedRole !== selectedUser.role && (
               <div className="mx-6 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                 <p className="text-xs leading-5 text-amber-700">
@@ -610,9 +598,7 @@ export default function AdminUsersPage() {
               </div>
             )}
 
-            {/* Actions */}
             <div className="flex justify-end gap-3 border-t border-slate-100 px-6 py-5">
-
               <button
                 type="button"
                 onClick={closeRoleModal}
@@ -633,9 +619,7 @@ export default function AdminUsersPage() {
               >
                 {savingRole ? "Saving..." : "Save Changes"}
               </button>
-
             </div>
-
           </div>
         </div>
       )}
