@@ -6,7 +6,7 @@ A centralized full-stack campus management platform where students, faculty, and
 
 🔗 Live Deployment
 
-Production: https://smart-campus-management-ashen.vercel.app
+Production: https://smart-campus-management-three.vercel.app/
 
 The application is deployed on Vercel and the production build is currently working.
 
