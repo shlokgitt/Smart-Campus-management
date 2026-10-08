@@ -1,6 +1,5 @@
 Smart Campus Management Platform
 
-DevFusion 4.O — The Developers Hackathon Problem Statement 1: Smart Campus Management Platform
 
 A centralized full-stack campus management platform where students, faculty, and administrators can manage academic activities, attendance, assignments, notifications, profiles, and user roles from one connected system.
 
