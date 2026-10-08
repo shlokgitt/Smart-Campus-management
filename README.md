@@ -350,26 +350,10 @@ Verified successful production build
 
 Successfully deployed to Vercel
 
-👥 Team
 
-Member
-
-Responsibility
-
-Shlok
-
-Backend & Authentication
-
-Shrijan
-
-Frontend & UI/UX
-
-Sidharth
-
-Designing & Libraries
 
 📄 License
 
-Built for DevFusion 4.O — The Developers Hackathon.
+
 
 Not licensed for production/commercial use.
