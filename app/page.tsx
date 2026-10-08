@@ -470,7 +470,7 @@ export default function Home() {
           </div>
 
           <p className="text-xs text-zinc-500">
-            Built for DevFusion 4.O — The Developers Hackathon
+           
           </p>
         </div>
       </footer>
